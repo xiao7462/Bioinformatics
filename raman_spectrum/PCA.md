@@ -1,4 +1,5 @@
-# 根据文献 Label-free Prostate Cancer Detection by Characterization of Extracellular Vesicles using Raman Spectroscope 
+# 文献 
+根据 Label-free Prostate Cancer Detection by Characterization of Extracellular Vesicles using Raman Spectroscope 
 来处理raman光谱数据，数据下机后用采用自带的软件进行去背景，归一化等，得到各样本波谱~强度表
 
 # 寻找波长范围
