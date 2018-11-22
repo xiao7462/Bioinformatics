@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Agg') # linux无GUI接口时
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -8,7 +8,7 @@ from sklearn.decomposition import PCA
 import sys
 #np.set_printoptions(threshold='nan')
 
-#数据预处理
+#数据预处理：加载数据，添加label
 df = pd.read_csv(sys.argv[1],sep = '\t')
 df.set_index('Wave',inplace=True)
 X = df.T
