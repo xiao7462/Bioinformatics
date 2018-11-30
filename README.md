@@ -15,3 +15,4 @@
 # 拉曼光谱PCA
 
 # 代谢组处理
+ * [数据处理](https://github.com/xiao7462/Bioinformatics/blob/master/metabolome/metabolome.ipynb) 待完成
