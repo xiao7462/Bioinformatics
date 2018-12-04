@@ -8,7 +8,7 @@
       /data1/tangx/software/sratoolkit.2.9.2-ubuntu64/bin/fasterq-dump.2.9.2 --split-3 -e 20 -p ${i}
      done  #转换为fastq格式
      ```
- * 热图绘制 R
+ * 热图绘制 R     
  ![原始数据](https://github.com/xiao7462/Bioinformatics/blob/master/pic/heatmap_rawdata.png)
  ``` R
  rm(list=ls())
