@@ -9,6 +9,7 @@
      done  #转换为fastq格式
      ```
  * 热图绘制 R
+ ![原始数据](https://github.com/xiao7462/Bioinformatics/blob/master/pic/heatmap_rawdata.png)
  ``` R
  rm(list=ls())
 library(pheatmap) 
@@ -19,6 +20,7 @@ X<-log(X,10) #  将数值转换
 X[sapply(X,is.infinite)]<- -3 # 替换负无穷为-3
 pheatmap(X,cellwidth = 30, cellheight = 9,border_color="black") # 绘制热图
  ```
+ ![热图](https://github.com/xiao7462/Bioinformatics/blob/master/pic/heatmap.png)
 ## 无参转录组
   * 差异表达分析
   * [单独查看表达基因](https://github.com/xiao7462/Bioinformatics/blob/master/RNA-seq/%E5%AF%8C%E9%9B%86%E5%85%A8%E9%83%A8%E8%A1%A8%E8%BE%BE%E5%9F%BA%E5%9B%A0.md)
