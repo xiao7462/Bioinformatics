@@ -48,9 +48,9 @@ X = df.iloc[:,:-1]
 #PCA
 colors = ['navy', 'turquoise','darkorange','yellow']
 target_names = ['P+','N-','P-','Z+']
-li = list(range(4210))
-wave_lengths = range(4,21)
-for wave_length in wave_lengths:    
+#li = list(range(4210))
+wave_lengths = range(4,21)  # 峰的范围选择
+for wave_length in wave_lengths:    #遍历所有波长范围
     start , end = 0,wave_length
     while end < 4210 :
         test = X.iloc[:, start:end]
