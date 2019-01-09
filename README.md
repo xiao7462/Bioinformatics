@@ -37,4 +37,4 @@ pheatmap(X,cellwidth = 30, cellheight = 9,border_color="black") # 绘制热图
 # 代谢组处理
  * [数据处理](https://github.com/xiao7462/Bioinformatics/blob/master/metabolome/metabolome.ipynb) 待完成
 
-# [q-PCR 处理](https://github.com/xiao7462/Bioinformatics/blob/master/q-PCR.md)
+# [q-PCR数据处理](https://github.com/xiao7462/Bioinformatics/blob/master/q-PCR.md)
