@@ -1,6 +1,16 @@
-# Bioinformatics
-**This is a bioinfomation study note repository**
-# RNA-seq
+**Bioinformatics**     
+**This is a bioinfomation study note repository**           
+## 目录
+-[转录组](#转录组)    
+-[无参转录组](#无参转录组)         
+-[进化树](#进化树)   
+-[生信软件安装](#生信软件安装)   
+-[拉曼光谱数据处理](#拉曼光谱数据处理)     
+-[代谢组处理](#代谢组处理)    
+-[PCR数据处理](#PCR数据处理)      
+
+
+## 转录组
  * sra转fastq格式
      ```
      for i in SRR3159774 SRR3159776 SRR3159778 SRR3159775 SRR3159777 SRR3159779
@@ -24,17 +34,15 @@ pheatmap(X,cellwidth = 30, cellheight = 9,border_color="black") # 绘制热图
 ## 无参转录组
   * 差异表达分析
   * [单独查看表达基因](https://github.com/xiao7462/Bioinformatics/blob/master/RNA-seq/%E5%AF%8C%E9%9B%86%E5%85%A8%E9%83%A8%E8%A1%A8%E8%BE%BE%E5%9F%BA%E5%9B%A0.md)
-# Evolution tree
 
-## 转录组进化树
+## 进化树
 
-# SNP
+## 生信软件安装
 
-# Software
+## 拉曼光谱数据处理]
 
-# 拉曼光谱PCA
-
-# 代谢组处理
+## 代谢组处理
  * [数据处理](https://github.com/xiao7462/Bioinformatics/blob/master/metabolome/metabolome.ipynb) 待完成
 
-# [q-PCR数据处理](https://github.com/xiao7462/Bioinformatics/blob/master/q-PCR.md)
+## PCR数据处理
+[q-PCR数据处理](https://github.com/xiao7462/Bioinformatics/blob/master/q-PCR.md)
