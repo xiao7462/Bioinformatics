@@ -19,6 +19,13 @@ do
 done
 #56-58的舍弃了，只用 59-62
  ```
+ 
+ * 通过sra下载ncbi数据
+ ![sra.png](https://i.loli.net/2019/08/27/YBtNJEMLuDWeiRS.png)
+ 
+ * 比对软件[总结](https://mp.weixin.qq.com/s/YI8QzAaAEWubCe1JxXEL1w?)
+ 
+
  * 质控+查看质控
  ```bash
  for i in `seq 56 62`
@@ -59,6 +66,92 @@ do
 done
 
 ```
+
+* sam转换为bam文件
+```bash
+sam--- bam  
+samtools view -S siSUZ12_1.sam -b > siSUZ12_1.bam   
+samtools sort siSUZ12_1.bam siSUZ12_1.sorted 
+```
+
+* read计数
+代码
+```python
+！/usr/bin/python3
+def combine_count(count_list):   ##定义一个合并的函数
+    mydict={}                    #创建字典
+    for file in count_list:       #读取count_list里面的每一个文件
+        for line in open(file,'r'):      #读取每一个文件里面的每一行
+            #print(line)
+            if line.startswith('E'):      #判断是不是每行的开头都是E
+                key,value = line.strip().split('\t')  #读取文件内容到新的字典里； \t 是制表符；  split('\t)是去除制表符；strip()是去除字符串头尾的空格以及 \n, \t之类的
+                if key in mydict:
+                    mydict[key]=mydict[key] + '\t' + value      # 追加值    
+                else:ne
+                    mydict[key]=value              # 更新key的内容
+    sorted_mydict = sorted(mydict)      #排序
+    out = open('count_out.txt','w')     #open创建一个新的空文件
+    
+    for k in sorted_mydict:              
+        #print(k,mydict[k]）
+        #break
+        out.write(k+'\t'+mydict[k]+'\n')    # 写入已经排好序的内容
+        
+count_list=['SRR3589959.count', 'SRR3589960.count', 'SRR3589961.count'，'SRR3589962.count']
+
+combine_count(count_list)
+
+```
+
+* Deseq2 差异表达分析
+```r
+library(DESeq2)
+                ##数据预处理
+                database <- read.table(file = "mouse_all_count.txt", sep = "\t", header = T, row.names = 1)
+                database <- round(as.matrix(database))
+                 
+                ##设置分组信息并构建dds对象
+                condition <- factor(c(rep("control",2),rep("Akap95",2)), levels = c("control", "Akap95"))
+                coldata <- data.frame(row.names = colnames(database), condition)
+                dds <- DESeqDataSetFromMatrix(countData=database, colData=coldata, design=~condition)
+                dds <- dds[ rowSums(counts(dds)) > 1, ]
+                 
+                ##使用DESeq函数估计离散度，然后差异分析获得res对象
+                dds <- DESeq(dds)
+                res <- results(dds)
+                 
+                #最后设定阈值，筛选差异基因，导出数据(全部数据。包括标准化后的count数)
+                res <- res[order(res$padj),]
+                diff_gene <- subset(res, padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1))
+                diff_gene <- row.names(diff_gene)
+                resdata <- merge(as.data.frame(res), as.data.frame(counts(dds, normalized=TRUE)),by="row.names",sort=FALSE)
+                write.csv(resdata,file = "control_vs_Akap95.csv",row.names = F)
+
+```
+
+* Go 富集分析
+
+```r
+library(clusterProfiler)
+                library(org.Mm.eg.db)
+                 
+                ##去除ID的版本号
+                diff_gene_ENSEMBL <- unlist(lapply(diff_gene, function(x){strsplit(x, "\\.")[[1]][1]}))
+                ##GOid mapping + GO富集
+                ego <- enrichGO(gene = diff_gene_ENSEMBL, OrgDb = org.Mm.eg.db,
+                                keyType = "ENSEMBL", ont = "BP", pAdjustMethod = "BH",
+                                pvalueCutoff = 0.01, qvalueCutoff = 0.05)
+                ##查看富集结果数据
+                enrich_go <- as.data.frame(ego)
+                ##作图
+                barplot(ego, showCategory=10)
+                dotplot(ego)
+                enrichMap(ego)
+                plotGOgraph(ego)
+
+```
+![pathway.png](https://i.loli.net/2019/08/27/u3NBe9hUXnSOFi7.png)
+
 
 ## 无参转录组
   * 差异表达分析
@@ -189,7 +282,7 @@ $ make
 
 ```
 参考教程
-> 最近正在做这个，用一组有ground truth的数据尝试了3个软件：
+最近正在做这个，用一组有ground truth的数据尝试了3个软件：
 CNVnator GitHub FP很高，难以做下游过滤
 BIC-seq2 还在run...
 CNVkit GitHub 比较成功，通过适当的参数选择可以得出sensitivity和specificity都是100%得结果
@@ -209,11 +302,100 @@ linux下安装ROOT过程
 
 来自 <https://blog.csdn.net/i826056899/article/details/39596967> 
 
+### RAxml
+* 安装
+![RAxml.png](https://i.loli.net/2019/08/27/9gan64iedsfYyxD.png)
 
+* 参数
+![parameter.png](https://i.loli.net/2019/08/27/lA1k6bhCHZR53Jq.png)
+
+* 实际代码  -计算自展值(bootstrp)
+`raxmlHPC-PTHREADS-AVX -T 4 -f a -p 12345 -x 12345 -# 100  -m PROTGAMMAWAG -sap2_align_cured.phy -n T9` 
+
+
+### hisat2 
+* 运行代码
+```bash
+extract_exons.py Homo_sapiens.GRCh38.83.chr.gtf > genome.exon
+extract_splice_sites.py Homo_sapiens.GRCh38.83.chr.gtf > genome.ss
+extract_snps.py snp142Common.txt > genome.snp
+hisat2-build -p 4 genome.fa --snp genome.snp --ss genome.ss --exon genome.exon genome_snp_tran
+
+```
+### orthofinder
+* 实际运行
+`orthofinder -f ~/polytrans/raw_data -t 40`
+`orthofinder -b ~/polytrans/Results_May20/WorkingDirectory -f ~/polytrans/E-B -t 40`
 
 
 
 ## 拉曼光谱数据处理]
+```python
+import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import os
+from sklearn.decomposition import PCA
+import sys
+
+df = pd.read_csv('/data1/tangx/raman/0323/0323.csv',sep = ',')
+df.set_index('Wave',inplace=True)
+df = df.T
+P_sample =df[df['target'] =='N' ]
+Z_sample = df[df['target'] =='Z' ]
+df = P_sample.append(Z_sample)
+y = df['target'].values
+X = df.iloc[:,1:]
+
+wave_lengths = range(4,21)
+for wave_length in wave_lengths:
+    for i in range(500,1100): 
+        wave_choose = X.iloc[:,i :i +wave_length]
+        left = wave_choose.columns[0]
+        right = wave_choose.columns[-1]
+        # PCA
+        pca = PCA(n_components = 3)
+        principalComponents = pca.fit_transform(wave_choose)
+        """principalComponents
+        array([[ 0.11424775, -0.02477196,  0.00409868],
+       [ 0.01258328,  0.05578577, -0.00444276],
+       [-0.19815818,  0.03132211, -0.01661246],
+       [ 0.05201658, -0.05212701, -0.00767984],
+       [-0.08611526,  0.02718982,  0.02507499],
+       [-0.01478776, -0.02974936, -0.01112425],
+       [ 0.2506098 ,  0.04360269, -0.00337041],
+       [-0.0476935 , -0.00448015, -0.00323041],
+       [-0.01101285, -0.02548083,  0.01021661],
+       [-0.07168986, -0.02129109,  0.00706986]])
+        """
+        principalDf = pd.DataFrame(data = principalComponents
+             , columns = ['principal component 1', 'principal component 2','principal component 3'])
+        principalDf['target'] = df['target'].values
+        finalDf = principalDf
+        
+        # 绘图
+        for pc_number in ([0,1],[1,2],[0,2]):
+            plt.figure(figsize= (15,10))
+            plt.xlabel('Principal Component {} ({:.2%})'.format(pc_number[0]+1,pca.explained_variance_ratio_[pc_number[0]]), fontsize = 15)
+            plt.ylabel('Principal Component {} ({:.2%})'.format(pc_number[1]+1,pca.explained_variance_ratio_[pc_number[1]]), fontsize = 15)
+            plt.title('{} to {} of raman wave'.format(left,right), fontsize = 20)
+            targets = ['N','Z']
+            colors = ['navy', 'red']
+            for target, color in zip(targets,colors):
+                indexs = finalDf[finalDf.target==target].index.tolist()
+                plt.scatter(finalDf.iloc[indexs, pc_number[0]]
+                           , finalDf.iloc[indexs, pc_number[1]]
+                           , c = color,alpha=.8
+                           , s = 50)
+            plt.legend(targets)
+            plt.grid()
+            plt.savefig("./picture/{} to {} with {} to{}.png".format(right,left,pc_number[0]+1,pc_number[1]+1))
+            #plt.show()
+            plt.close()
+```
+
 
 ## 代谢组处理
  * [数据处理](https://github.com/xiao7462/Bioinformatics/blob/master/metabolome/metabolome.ipynb) 待完成
@@ -238,6 +420,48 @@ pheatmap(X,cellwidth = 30, cellheight = 9,border_color="black") # 绘制热图
  ```
  ![热图](https://github.com/xiao7462/Bioinformatics/blob/master/pic/heatmap.png)
 
+* ggplot2绘制富集图
+```r
+library(ggplot2)
+ 
+# 读取数据
+pathway = read.table("./qwe.txt",header=T,sep="\t")
+ 
+# 开始画图
+p = ggplot(pathway,aes(richFactor,Pathway))
+p + geom_point()
+ 
+# 改变点的大小
+p + geom_point(aes(size=Input-number))
+ 
+# 四维数据的展示
+pbubble = p + geom_point(aes(size=Input-number,color=-1*log10(Qvalue)))
+ 
+# 自定义渐变颜色
+pbubble + scale_colour_gradient(low="green",high="red")
+ 
+# 绘制pathway富集散点图
+pr = pbubble + scale_colour_gradient(low="green",high="red") + labs(color=expression(-log[10](Qvalue)),size="Gene number",x="Rich factor",y="Pathway name",title="Top20 of pathway enrichment")
+# 改变图片的样式（主题）
+pr + theme_bw()
+## 保存图片
+ggsave("out.pdf")   # 保存为pdf格式，支持 pdf，png，svg多重格式
+ggsave("out.png")  # 保存为png格式
+ggsave("out2.png",width=4,height=4)   # 设定图片大小
+```
+
+* 散点图
+```r
+library(ggplot2)
+aa<-read.table("./444.txt",header=T,sep='\t')
+ggplot(data=aa,aes(x=factor(batch),y=value,size=value,colour=factor(serial)))+
+geom_point()+
+#geom_smooth(method=lm,se=FALSE) +
+#geom_boxplot(mapping = aes(group =factor(batch)), fill = 'steelblue')+
+theme_gray()+
+labs(x="batch",y="value")
+
+```
 
 ## 小脚本
 * 将基因按照随机的长度进行分隔 
@@ -257,3 +481,6 @@ while True:
     if prev > len(lines[0] ) - 1:
         break
 ```
+
+[衣藻参考基因组](ftp://ftp.ensemblgenomes.org/pub/plants/release-44/fasta/chlamydomonas_reinhardtii/dna/)
+
